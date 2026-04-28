@@ -1,5 +1,5 @@
 # Arr-sort-visualization
-数组排序可视化 —— 团队合作课程项目
+数组排序可视化
 
 ---
 
