@@ -7,7 +7,7 @@
 > 本项目为纯前端实现，无需后端环境，直接在浏览器打开即可运行。
 
 ## 🔗 相关链接
-- [项目仓库](https://github.com/你的用户名/Arr-sort-visualization)
+- [项目仓库](https://github.com/YINGLUO746/Arr-sort-visualization.git)
 - [使用说明](#使用方法)
 
 ## 📌 项目介绍
