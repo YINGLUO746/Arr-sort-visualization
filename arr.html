@@ -191,6 +191,30 @@
             color: #fff;
             white-space: pre-wrap;
         }
+
+        .sort-buttons-container {
+            position: absolute;
+            left: 480px;
+            top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sort-btn {
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 120px;
+        }
+
+        .sort-btn:hover {
+            background-color: #777;
+        }
     </style>
 </head>
 
@@ -212,6 +236,13 @@
         <textarea id="sortCodeInput" class="custom-input" rows="8" placeholder="// 请在这里写排序算法（下面是冒泡排序示例）&#10;// 提示：你操作的数组名字叫 arr&#10;for(let i = 0; i &lt; arr.length; i++) {&#10;    for(let j = 0; j &lt; arr.length - i - 1; j++) {&#10;        if(arr[j] &gt; arr[j+1]) {&#10;            let temp = arr[j];&#10;            arr[j] = arr[j+1];&#10;            arr[j+1] = temp;&#10;        }&#10;    }&#10;}" style="width: 100%; box-sizing: border-box; font-family: monospace; background-color: #444; color: #fff; border: 1px solid #666; margin-top: 40px;"></textarea>
         <br>
         <button class="btn" onclick="executeSortCode()">执行排序</button>
+
+        <div class="sort-buttons-container">
+            <button class="sort-btn" onclick="insertSortCode('bubble')">冒泡排序</button>
+            <button class="sort-btn" onclick="insertSortCode('selection')">选择排序</button>
+            <button class="sort-btn" onclick="insertSortCode('insertion')">插入排序</button>
+            <button class="sort-btn" onclick="insertSortCode('quick')">快速排序</button>
+        </div>
 
     </div>
 
@@ -243,7 +274,7 @@
     <div class="code-line code-highlight"></div>
 </body>
 <script>
-    let fakeNewsScores = [13, 4, 56, 40, 27, 75, 26, 89];
+    let paix = [13, 4, 56, 40, 27, 75, 26, 89];//初始数组
 
     function renderArray(arr) {
         const chart = document.getElementById('chart');
@@ -272,22 +303,23 @@
     }
 
     function fakeNewsSorting(arr) {
-        if (arr.length <= 1) {
-            return arr;
-        }
-        const report = [arr[0]];
-        let bestsofar = arr[0];
-        for (let i = 1; i < arr.length; i++) {
-            if (arr[i] > bestsofar) {
-                report.push(arr[i]);
-                bestsofar = arr[i];
-            } else {
-                bestsofar += 0.1;
-                report.push(bestsofar);
-            }
-        }
-        return report;
+    // 冒泡排序算法实现
+    if (arr.length <= 1) {
+        return arr;
     }
+    const report = [arr[0]];
+    let bestsofar = arr[0];
+    for (let i = 1; i < arr.length; i++) {
+        if (arr[i] > bestsofar) {
+            report.push(arr[i]);
+            bestsofar = arr[i];
+        } else {
+            bestsofar += 0.1;
+            report.push(bestsofar);
+        }
+    }
+    return report;
+}
 
     function generateRandomArray() {
         const arr = [];
@@ -298,13 +330,13 @@
     }
 
     function resetArray() {
-        fakeNewsScores = fakeNewsScores.map(() => 0);
-        renderArray(fakeNewsScores);
+        paix = paix.map(() => 0);
+        renderArray(paix);
     }
 
     function generateRandomArrayBtn() {
-        fakeNewsScores = generateRandomArray();
-        renderArray(fakeNewsScores);
+        paix = generateRandomArray();
+        renderArray(paix);
     }
 
     async function executeSortCode() {
@@ -313,10 +345,8 @@
             alert('请输入排序代码');
             return;
         }
-        
 
-        
-        const arrCopy = [...fakeNewsScores];
+        const arrCopy = [...paix];
         const actionQueue = [];
         let lastState = [...arrCopy];
         
@@ -405,7 +435,7 @@
             }
         }
         
-        fakeNewsScores = arrCopy;
+        paix = arrCopy;
         
         const finalBars = document.querySelectorAll('.bar');
         for (let i = 0; i < finalBars.length; i++) {
@@ -421,6 +451,66 @@
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function insertSortCode(type) {
+        const codeTemplates = {
+            bubble: `// 冒泡排序
+for(let i = 0; i < arr.length; i++) {
+    for(let j = 0; j < arr.length - i - 1; j++) {
+        if(arr[j] > arr[j+1]) {
+            let temp = arr[j];
+            arr[j] = arr[j+1];
+            arr[j+1] = temp;
+        }
+    }
+}`,
+            selection: `// 选择排序
+for(let i = 0; i < arr.length - 1; i++) {
+    let minIndex = i;
+    for(let j = i + 1; j < arr.length; j++) {
+        if(arr[j] < arr[minIndex]) {
+            minIndex = j;
+        }
+    }
+    let temp = arr[i];
+    arr[i] = arr[minIndex];
+    arr[minIndex] = temp;
+}`,
+            insertion: `// 插入排序
+for(let i = 1; i < arr.length; i++) {
+    let key = arr[i];
+    let j = i - 1;
+    while(j >= 0 && arr[j] > key) {
+        arr[j + 1] = arr[j];
+        j--;
+    }
+    arr[j + 1] = key;
+}`,
+            quick: `// 快速排序
+function quickSort(arr, left, right) {
+    if(left < right) {
+        let pivot = arr[right];
+        let i = left - 1;
+        for(let j = left; j < right; j++) {
+            if(arr[j] <= pivot) {
+                i++;
+                let temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        let temp = arr[i + 1];
+        arr[i + 1] = arr[right];
+        arr[right] = temp;
+        let pi = i + 1;
+        quickSort(arr, left, pi - 1);
+        quickSort(arr, pi + 1, right);
+    }
+}
+quickSort(arr, 0, arr.length - 1);`
+        };
+        document.getElementById('sortCodeInput').value = codeTemplates[type];
     }
 
     function openCustomModal() {
@@ -488,8 +578,8 @@
         });
         
         if (arr.length > 0) {
-            fakeNewsScores = arr;
-            renderArray(fakeNewsScores);
+            paix = arr;
+            renderArray(paix);
         } else {
             alert('请至少输入一个有效数字');
             return;
@@ -497,7 +587,7 @@
         closeCustomModal();
     }
 
-    renderArray(fakeNewsScores);
+    renderArray(paix);
 </script>
 
 </html>
