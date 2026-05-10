@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数组排序可视化</title>
+    <style>
+        /* ========== 主题配色变量定义 ========== */
+        /* 浅色主题变量 */
+        :root {
+            --bg-body: #f5f5f5;
+            --text-body: #1a1a2e;
+            --text-secondary: #6b7280;
+            --bg-card: #ffffff;
+            --border-light: #e0e0e0;
+            --border-lighter: #e8e8e8;
+            --primary: #4f46e5;
+            --bar-color: #7c8cf8;
+            --bar-value-color: #ffffff;
+            --swap-highlight: #ef4444;
+            --completion-color: #4f46e5;
+            --bg-input: #f9f9f9;
+            --bg-code-input: #f9f9f9;
+            --bg-chart: #ffffff;
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-modal: 0 20px 60px rgba(0,0,0,0.12);
+            --btn-hover-bg: #4f46e5;
+            --btn-hover-text: #ffffff;
+            --btn-hover-border: #4f46e5;
+            --sort-hover-bg: #f0f0ff;
+            --sort-hover-border: #c7d2fe;
+            --modal-overlay: rgba(0,0,0,0.3);
+            --modal-input-focus: #4f46e5;
+            --bar-width: 36px;
+            --bar-radius: 4px 4px 0 0;
+            --btn-radius: 20px;
+            --sort-btn-radius: 16px;
+            --modal-radius: 16px;
+            --card-radius: 12px;
+        }
+
+                /* 深色主题变量 */
+        body.dark {
+            --bg-body: #222222;
+            --text-body: #ffffff;
+            --text-secondary: #aaaaaa;
+            --bg-card: #444444;
+            --border-light: #666666;
+            --border-lighter: #666666;
+            --primary: #448855;
+            --bar-color: #448855;
+            --bar-value-color: #000000;
+            --swap-highlight: #FF5252;
+            --completion-color: #0000ff;
+            --bg-input: #444444;
+            --bg-code-input: #444444;
+            --bg-chart: #333333;
+            --shadow-card: none;
+            --shadow-modal: none;
+            --btn-hover-bg: #666666;
+            --btn-hover-text: #ffffff;
+            --btn-hover-border: #666666;
+            --sort-hover-bg: #777777;
+            --sort-hover-border: #777777;
+            --modal-overlay: rgba(0,0,0,0.5);
+            --modal-input-focus: #666666;
+            --bar-radius: 0;
+            --btn-radius: 4px;
+            --sort-btn-radius: 4px;
+            --modal-radius: 10px;
+            --card-radius: 0;
+        }
+
+                /* ========== 全局样式重置 ========== */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* ========== 页面主体布局样式 ========== */
+        body {
+            margin: 0;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-body);
+            color: var(--text-body);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+                /* 页面标题样式 */
+        h1 {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin: 0 0 40px 0;
+            color: var(--text-body);
+            align-self: flex-start;
+        }
+
+        /* ========== 主题切换按钮样式 ========== */
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 32px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-light);
+            background-color: var(--bg-card);
+            color: var(--text-body);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-card);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+                /* ========== 数组可视化图表样式 ========== */
+        /* 柱状图单个柱条样式 */
+        .bar {
+            width: var(--bar-width);
+            margin: 0 4px;
+            background-color: var(--bar-color);
+            border-radius: var(--bar-radius);
+            transition: height 0.4s ease,
+                background-color 0.3s ease,
+                transform 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 8px;
+        }
+
+        .bar-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--bar-value-color);
+            position: relative;
+            top: 4px;
+        }
+
+        .chart-container {
+            width: 720px;
+            height: 360px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            background-color: var(--bg-chart);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-card);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #chart {
+            display: flex;
+            align-items: flex-end;
+            height: 360px;
+            padding: 20px 24px;
+            gap: 4px;
+        }
+
+        .array-wrapper {
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            margin: 0 0 32px 0;
+            align-self: flex-start;
+        }
+
+                /* ========== 按钮容器与按钮样式 ========== */
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            align-self: flex-start;
+            margin-bottom: 28px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            background-color: var(--bg-card);
+            color: var(--primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--btn-radius);
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--btn-hover-bg);
+            color: var(--btn-hover-text);
+            border-color: var(--btn-hover-border);
+        }
+
+        .custom-input {
+            padding: 10px 14px;
+            font-size: 14px;
+            width: 300px;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+        }
+
+                /* ========== 模态框样式 ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-overlay);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 36px;
+            border-radius: var(--modal-radius);
+            text-align: center;
+            color: var(--text-body);
+            box-shadow: var(--shadow-modal);
+            min-width: 340px;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content input {
+            margin: 10px 0;
+            padding: 10px 14px;
+            font-size: 14px;
+            width: 240px;
+            background-color: var(--bg-input);
+            color: var(--text-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .modal-content input:focus {
+            border-color: var(--modal-input-focus);
+        }
+
+        .modal-content button {
+            margin: 6px;
+            padding: 8px 22px;
+            font-size: 13px;
+            cursor: pointer;
+            background-color: var(--bg-card);
+            color: var(--primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--btn-radius);
+            transition: all 0.25s ease;
+        }
+
+        .modal-content button:hover {
+            background-color: var(--btn-hover-bg);
+            color: var(--btn-hover-text);
+            border-color: var(--btn-hover-border);
+        }
+
+                /* ========== 代码编辑区样式 ========== */
+        .code-wrapper {
+            position: relative;
+            border-radius: var(--card-radius);
+            padding: 28px;
+            background-color: var(--bg-card);
+            width: 480px;
+            box-shadow: var(--shadow-card);
+            align-self: flex-start;
+            transition: background-color 0.3s ease;
+        }
+
+        .code-wrapper h3 {
+            margin: 0 0 16px 0;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .sort-buttons-container {
+            position: absolute;
+            left: 500px;
+            top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sort-btn {
+            padding: 7px 16px;
+            font-size: 12px;
+            font-weight: 400;
+            cursor: pointer;
+            background-color: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-lighter);
+            border-radius: var(--sort-btn-radius);
+            width: 110px;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+
+        .sort-btn:hover {
+            background-color: var(--sort-hover-bg);
+            color: var(--primary);
+            border-color: var(--sort-hover-border);
+        }
+
+        .code-editor {
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            background-color: var(--bg-code-input);
+            color: var(--text-body);
+            border: 1px solid var(--border-lighter);
+            border-radius: 8px;
+            padding: 14px;
+            resize: vertical;
+            outline: none;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换配色">�</button>
+    <h1>数组排序可视化</h1>
+
+    <div class="array-wrapper">
+        <div class="chart-container" id="chart"></div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn" onclick="resetArray()">数组置零</button>
+        <button class="btn" onclick="generateRandomArrayBtn()">随机数组</button>
+        <button class="btn" onclick="openCustomModal()">自定义数组</button>
+    </div>
+
+    <div class="code-wrapper">
+        <h3>排序代码区</h3>
+        <textarea id="sortCodeInput" rows="8" placeholder="// 在这里编写排序算法&#10;// 提示：操作的数组名为 arr&#10;for(let i = 0; i &lt; arr.length; i++) {&#10;    for(let j = 0; j &lt; arr.length - i - 1; j++) {&#10;        if(arr[j] &gt; arr[j+1]) {&#10;            let temp = arr[j];&#10;            arr[j] = arr[j+1];&#10;            arr[j+1] = temp;&#10;        }&#10;    }&#10;}" class="code-editor"></textarea>
+        <br>
+        <button class="btn" onclick="executeSortCode()" style="margin-top: 12px;">执行排序</button>
+
+        <div class="sort-buttons-container">
+            <button class="sort-btn" onclick="insertSortCode('bubble')">冒泡排序</button>
+            <button class="sort-btn" onclick="insertSortCode('selection')">选择排序</button>
+            <button class="sort-btn" onclick="insertSortCode('insertion')">插入排序</button>
+            <button class="sort-btn" onclick="insertSortCode('quick')">快速排序</button>
+        </div>
+    </div>
+
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <h3 style="font-weight: 400; margin: 0 0 16px 0; font-size: 16px;">设置数组</h3>
+            <input type="number" id="arrayCountInput" placeholder="输入数组数量" min="1" max="20">
+            <br>
+            <button onclick="generateArrayInputs()">确定数量</button>
+            <button onclick="closeCustomModal()">取消</button>
+            
+            <div id="arrayInputsContainer" style="display: none; margin-top: 20px;">
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 12px;">输入数组元素</div>
+                <div id="arrayInputs" style="max-height: 250px; overflow-y: auto; margin: 10px 0;"></div>
+                <button onclick="applyCustomArray()">确定</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    // ========== 全局变量声明 ==========
+    let paix = [13, 4, 56, 40, 27, 75, 26, 89];
+
+    // ========== 工具函数 ==========
+    function getCSSVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+        // ========== 主题切换功能 ==========
+    function toggleTheme() {
+        const btn = document.querySelector('.theme-toggle');
+        const rect = btn.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const endRadius = Math.hypot(
+            Math.max(cx, window.innerWidth - cx),
+            Math.max(cy, window.innerHeight - cy)
+        );
+
+        const isDark = document.body.classList.contains('dark');
+
+        const lightVars = {
+            '--bg-body': '#f5f5f5', '--text-body': '#1a1a2e', '--text-secondary': '#6b7280',
+            '--bg-card': '#ffffff', '--border-light': '#e0e0e0', '--border-lighter': '#e8e8e8',
+            '--primary': '#4f46e5', '--bar-color': '#7c8cf8', '--bar-value-color': '#ffffff',
+            '--swap-highlight': '#ef4444', '--completion-color': '#4f46e5',
+            '--bg-input': '#f9f9f9', '--bg-code-input': '#f9f9f9', '--bg-chart': '#ffffff',
+            '--shadow-card': '0 1px 3px rgba(0,0,0,0.06)', '--shadow-modal': '0 20px 60px rgba(0,0,0,0.12)',
+            '--btn-hover-bg': '#4f46e5', '--btn-hover-text': '#ffffff', '--btn-hover-border': '#4f46e5',
+            '--sort-hover-bg': '#f0f0ff', '--sort-hover-border': '#c7d2fe',
+            '--modal-overlay': 'rgba(0,0,0,0.3)', '--modal-input-focus': '#4f46e5',
+            '--bar-radius': '4px 4px 0 0', '--btn-radius': '20px', '--sort-btn-radius': '16px',
+            '--modal-radius': '16px', '--card-radius': '12px'
+        };
+        const darkVars = {
+            '--bg-body': '#222222', '--text-body': '#ffffff', '--text-secondary': '#aaaaaa',
+            '--bg-card': '#444444', '--border-light': '#666666', '--border-lighter': '#666666',
+            '--primary': '#448855', '--bar-color': '#448855', '--bar-value-color': '#000000',
+            '--swap-highlight': '#FF5252', '--completion-color': '#0000ff',
+            '--bg-input': '#444444', '--bg-code-input': '#444444', '--bg-chart': '#333333',
+            '--shadow-card': 'none', '--shadow-modal': 'none',
+            '--btn-hover-bg': '#666666', '--btn-hover-text': '#ffffff', '--btn-hover-border': '#666666',
+            '--sort-hover-bg': '#777777', '--sort-hover-border': '#777777',
+            '--modal-overlay': 'rgba(0,0,0,0.5)', '--modal-input-focus': '#666666',
+            '--bar-radius': '0', '--btn-radius': '4px', '--sort-btn-radius': '4px',
+            '--modal-radius': '10px', '--card-radius': '0'
+        };
+        const newVars = isDark ? lightVars : darkVars;
+
+        const cloneWrap = document.createElement('div');
+        cloneWrap.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;pointer-events:none;overflow:auto;clip-path:circle(0 at ${cx}px ${cy}px);padding:60px 80px;display:flex;flex-direction:column;align-items:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background-color:${newVars['--bg-body']};`;
+        for (const [k, v] of Object.entries(newVars)) {
+            cloneWrap.style.setProperty(k, v);
+        }
+
+        Array.from(document.body.children).forEach(child => {
+            if (child !== btn && !child.classList.contains('theme-overlay')) {
+                cloneWrap.appendChild(child.cloneNode(true));
+            }
+        });
+
+        document.body.appendChild(cloneWrap);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                cloneWrap.style.transition = 'clip-path 1.2s ease-in-out';
+                cloneWrap.style.clipPath = `circle(${endRadius}px at ${cx}px ${cy}px)`;
+            });
+        });
+
+        setTimeout(() => {
+            document.body.classList.toggle('dark');
+            btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        }, 1100);
+
+        setTimeout(() => {
+            cloneWrap.remove();
+        }, 1400);
+    }
+
+        // ========== 数组可视化渲染功能 ==========
+    function renderArray(arr) {
+        const chart = document.getElementById('chart');
+        chart.innerHTML = '';
+        arr.forEach(score => {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = '0px';
+
+            const valueLabel = document.createElement('div');
+            valueLabel.className = 'bar-value';
+            valueLabel.textContent = score;
+
+            bar.appendChild(valueLabel);
+            chart.appendChild(bar);
+        });
+
+        const maxValue = Math.max(...arr);
+        const scale = 320 / maxValue;
+        const bars = document.querySelectorAll('.bar');
+
+        bars.forEach((bar, i) => {
+            bar.style.height = `${arr[i] * scale}px`;
+        });
+    }
+
+        // ========== 示例排序算法 ==========
+    function fakeNewsSorting(arr) {
+        if (arr.length <= 1) {
+            return arr;
+        }
+        const report = [arr[0]];
+        let bestsofar = arr[0];
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] > bestsofar) {
+                report.push(arr[i]);
+                bestsofar = arr[i];
+            } else {
+                bestsofar += 0.1;
+                report.push(bestsofar);
+            }
+        }
+        return report;
+    }
+
+        // ========== 数组操作功能 ==========
+    function generateRandomArray() {
+        const arr = [];
+        for (let i = 0; i < 9; i++) {
+            arr.push(Math.floor(Math.random() * 100) + 1);
+        }
+        return arr;
+    }
+
+    function resetArray() {
+        paix = paix.map(() => 0);
+        renderArray(paix);
+    }
+
+    function generateRandomArrayBtn() {
+        paix = generateRandomArray();
+        renderArray(paix);
+    }
+
+        // ========== 代码执行与排序可视化功能 ==========
+    async function executeSortCode() {
+        const code = document.getElementById('sortCodeInput').value;
+        if (!code.trim()) {
+            alert('请输入排序代码');
+            return;
+        }
+
+        const arrCopy = [...paix];
+        const actionQueue = [];
+        let lastState = [...arrCopy];
+        
+        const trackedArray = new Proxy(arrCopy, {
+            set(target, index, value) {
+                if (!isNaN(index)) {
+                    const idx = Number(index);
+                    if (lastState[idx] !== value) {
+                        const sourceIndex = lastState.indexOf(value);
+                        if (sourceIndex !== -1 && sourceIndex !== idx) {
+                            actionQueue.push({ 
+                                type: 'swap', 
+                                from: sourceIndex, 
+                                to: idx 
+                            });
+                        }
+                        lastState[idx] = value;
+                    }
+                }
+                target[index] = value;
+                return true;
+            }
+        });
+        
+        try {
+            const sortFunction = new Function('arr', code);
+            sortFunction(trackedArray);
+        } catch (error) {
+            alert("代码语法错误：\n" + error.message);
+            return;
+        }
+        
+        const bars = document.querySelectorAll('.bar');
+        
+        for (let i = 0; i < actionQueue.length; i++) {
+            const action = actionQueue[i];
+            
+            if (action.type === 'swap') {
+                const bar1 = bars[action.from];
+                const bar2 = bars[action.to];
+                
+                const hlColor = getCSSVar('--swap-highlight');
+                bar1.style.backgroundColor = hlColor;
+                bar2.style.backgroundColor = hlColor;
+                
+                await sleep(180);
+                
+                const rect1 = bar1.getBoundingClientRect();
+                const rect2 = bar2.getBoundingClientRect();
+                const distance = rect2.left - rect1.left;
+                
+                bar1.style.transition = 'transform 0.4s ease';
+                bar2.style.transition = 'transform 0.4s ease';
+                
+                bar1.style.transform = `translateX(${distance}px)`;
+                bar2.style.transform = `translateX(-${distance}px)`;
+                bar1.style.zIndex = 10;
+                bar2.style.zIndex = 10;
+                
+                await sleep(500);
+                
+                const tempBar = bars[action.from];
+                bars[action.from] = bars[action.to];
+                bars[action.to] = tempBar;
+                
+                const tempValue = bar1.querySelector('.bar-value').textContent;
+                const tempHeight = bar1.style.height;
+                
+                bar1.querySelector('.bar-value').textContent = bar2.querySelector('.bar-value').textContent;
+                bar1.style.height = bar2.style.height;
+                
+                bar2.querySelector('.bar-value').textContent = tempValue;
+                bar2.style.height = tempHeight;
+                
+                bar1.style.transform = '';
+                bar2.style.transform = '';
+                bar1.style.zIndex = 1;
+                bar2.style.zIndex = 1;
+                
+                const barCol = getCSSVar('--bar-color');
+                bar1.style.backgroundColor = barCol;
+                bar2.style.backgroundColor = barCol;
+                
+                bar1.style.transition = 'height 0.4s ease, background-color 0.3s ease, transform 0.3s ease';
+                bar2.style.transition = 'height 0.4s ease, background-color 0.3s ease, transform 0.3s ease';
+                
+                await sleep(180);
+            }
+        }
+        
+        paix = arrCopy;
+        
+        const finalBars = document.querySelectorAll('.bar');
+        const compColor = getCSSVar('--completion-color');
+        for (let i = 0; i < finalBars.length; i++) {
+            finalBars[i].style.backgroundColor = compColor;
+            await sleep(120);
+        }
+        
+        const barCol = getCSSVar('--bar-color');
+        for (let i = 0; i < finalBars.length; i++) {
+            finalBars[i].style.backgroundColor = barCol;
+            await sleep(120);
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+        // ========== 排序算法代码模板 ==========
+    function insertSortCode(type) {
+        const codeTemplates = {
+            bubble: `// 冒泡排序
+for(let i = 0; i < arr.length; i++) {
+    for(let j = 0; j < arr.length - i - 1; j++) {
+        if(arr[j] > arr[j+1]) {
+            let temp = arr[j];
+            arr[j] = arr[j+1];
+            arr[j+1] = temp;
+        }
+    }
+}`,
+            selection: `// 选择排序
+for(let i = 0; i < arr.length - 1; i++) {
+    let minIndex = i;
+    for(let j = i + 1; j < arr.length; j++) {
+        if(arr[j] < arr[minIndex]) {
+            minIndex = j;
+        }
+    }
+    let temp = arr[i];
+    arr[i] = arr[minIndex];
+    arr[minIndex] = temp;
+}`,
+            insertion: `// 插入排序
+for(let i = 1; i < arr.length; i++) {
+    let key = arr[i];
+    let j = i - 1;
+    while(j >= 0 && arr[j] > key) {
+        arr[j + 1] = arr[j];
+        j--;
+    }
+    arr[j + 1] = key;
+}`,
+            quick: `// 快速排序
+function quickSort(arr, left, right) {
+    if(left < right) {
+        let pivot = arr[right];
+        let i = left - 1;
+        for(let j = left; j < right; j++) {
+            if(arr[j] <= pivot) {
+                i++;
+                let temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        let temp = arr[i + 1];
+        arr[i + 1] = arr[right];
+        arr[right] = temp;
+        let pi = i + 1;
+        quickSort(arr, left, pi - 1);
+        quickSort(arr, pi + 1, right);
+    }
+}
+quickSort(arr, 0, arr.length - 1);`
+        };
+        document.getElementById('sortCodeInput').value = codeTemplates[type];
+    }
+
+        // ========== 自定义数组模态框功能 ==========
+    function openCustomModal() {
+        const bars = document.querySelectorAll('.bar');
+        bars.forEach(bar => {
+            bar.style.zIndex = '1';
+            bar.style.transform = '';
+        });
+        
+        document.getElementById('customModal').classList.add('active');
+        document.getElementById('arrayCountInput').value = '';
+        document.getElementById('arrayInputsContainer').style.display = 'none';
+        document.getElementById('arrayInputs').innerHTML = '';
+    }
+
+    function closeCustomModal() {
+        document.getElementById('customModal').classList.remove('active');
+    }
+
+    function generateArrayInputs() {
+        const count = parseInt(document.getElementById('arrayCountInput').value);
+        if (isNaN(count) || count < 1 || count > 50) {
+            alert('请输入1-50之间的有效数字');
+            return;
+        }
+        
+        const container = document.getElementById('arrayInputs');
+        container.innerHTML = '';
+        
+        const bg = getCSSVar('--bg-input');
+        const txt = getCSSVar('--text-body');
+        const bdr = getCSSVar('--border-light');
+        
+        for (let i = 1; i <= count; i++) {
+            const inputWrapper = document.createElement('div');
+            inputWrapper.style.margin = '8px 0';
+            inputWrapper.style.display = 'flex';
+            inputWrapper.style.alignItems = 'center';
+            inputWrapper.style.gap = '10px';
+            
+            const label = document.createElement('span');
+            label.textContent = `元素 ${i}`;
+            label.style.fontSize = '13px';
+            label.style.color = getCSSVar('--text-secondary');
+            label.style.minWidth = '50px';
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.id = `arrayElement_${i}`;
+            input.placeholder = '数字';
+            input.style.width = '180px';
+            input.style.padding = '8px 12px';
+            input.style.backgroundColor = bg;
+            input.style.color = txt;
+            input.style.border = `1px solid ${bdr}`;
+            input.style.borderRadius = '8px';
+            input.style.fontSize = '13px';
+            input.style.outline = 'none';
+            
+            inputWrapper.appendChild(label);
+            inputWrapper.appendChild(input);
+            container.appendChild(inputWrapper);
+        }
+        
+        document.getElementById('arrayInputsContainer').style.display = 'block';
+    }
+
+    function applyCustomArray() {
+        const inputs = document.querySelectorAll('#arrayInputs input');
+        const arr = [];
+        
+        inputs.forEach((input) => {
+            const value = parseFloat(input.value.trim());
+            if (!isNaN(value)) {
+                arr.push(value);
+            }
+        });
+        
+        if (arr.length > 0) {
+            paix = arr;
+            renderArray(paix);
+        } else {
+            alert('请至少输入一个有效数字');
+            return;
+        }
+        closeCustomModal();
+    }
+
+        // ========== 页面初始化 ==========
+    renderArray(paix);
+</script>
+
+</html>
